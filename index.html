@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Crow Shooting Game</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="welcomeScreen">
+      <h1>Welcome to<br />Crow Shooter Game</h1>
+      <button id="nextButton">NEXT</button>
+    </div>
+    <div id="deviceScreen" style="display: none">
+      <h1>Choose Your Device</h1>
+      <div style="display: flex; flex-direction: column; gap: 20px">
+        <button class="deviceButton" data-device="mobile">📱 MOBILE</button>
+        <button class="deviceButton" data-device="pc">💻 PC / LAPTOP</button>
+      </div>
+    </div>
+    <div id="instructionScreen" style="display: none">
+      <h1 id="instructionTitle">Instructions</h1>
+      <div id="instructionContent"></div>
+      <button id="startButton">START GAME</button>
+    </div>
+    <div id="orientationWarning">
+      Please rotate your device to landscape mode
+    </div>
+    <div id="gameOverScreen">
+      <h1>GAME OVER!</h1>
+      <p id="finalScore">Your Score: 0</p>
+      <button id="playAgainButton">PLAY AGAIN</button>
+    </div>
+    <canvas id="collisionCanvas"></canvas>
+    <canvas id="canvas1"></canvas>
+  </body>
+  <script src="script.js"></script>
+</html>
