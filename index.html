@@ -1,69 +1,65 @@
+<!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Crow Shooter — Refined</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <!-- Screens (only one visible at a time) -->
-    <div id="welcomeScreen" class="screen-container show">
-      <h1>Welcome to<br />Crow Shooter</h1>
-      <p class="subtitle">Test your reflexes and aim — quick rounds, clean UI.</p>
-      <button id="nextButton" class="btn">Next</button>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Crow Shooter — Auto-scale</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Screens -->
+  <div id="welcomeScreen" class="screen-container show">
+    <h1>Crow Shooter</h1>
+    <p class="subtitle">Quick rounds — optimized for any screen</p>
+    <button id="nextButton" class="btn">Next</button>
+  </div>
+
+  <div id="deviceScreen" class="screen-container">
+    <h1>Choose Device</h1>
+    <div class="device-buttons">
+      <button class="deviceButton" data-device="mobile">📱 MOBILE</button>
+      <button class="deviceButton" data-device="pc">💻 PC / LAPTOP</button>
     </div>
+  </div>
 
-    <div id="deviceScreen" class="screen-container">
-      <h1>Choose Your Device</h1>
-      <div class="device-buttons">
-        <button class="deviceButton" data-device="mobile">
-          <span class="emoji">📱</span>
-          <span>MOBILE</span>
-        </button>
-        <button class="deviceButton" data-device="pc">
-          <span class="emoji">💻</span>
-          <span>PC / LAPTOP</span>
-        </button>
-      </div>
+  <div id="instructionScreen" class="screen-container">
+    <h1>How to Play</h1>
+    <div id="instructionContent" class="card"></div>
+    <button id="startButton" class="btn primary">Start Game</button>
+  </div>
+
+  <div id="rotateScreen" class="screen-container">
+    <h1>Rotate device</h1>
+    <p>Please rotate to landscape to play.</p>
+  </div>
+
+  <div id="wrongDeviceScreen" class="screen-container">
+    <h1>Wrong device</h1>
+    <p id="wrongDeviceMessage"></p>
+    <div class="control-row">
+      <button id="backToDeviceBtn" class="btn">Choose Device</button>
     </div>
+  </div>
 
-    <div id="instructionScreen" class="screen-container">
-      <h1>How to Play</h1>
-      <div id="instructionContent" class="card"></div>
-      <button id="startButton" class="btn primary">Start Game</button>
+  <div id="gameOverScreen" class="screen-container">
+    <h1>Game Over</h1>
+    <div id="finalScore" class="stat">Your Score: 0</div>
+    <div class="control-row">
+      <button id="playAgainButton" class="btn">Play Again</button>
+      <button id="deviceAgainButton" class="btn">Choose Device</button>
     </div>
+  </div>
 
-    <div id="rotateScreen" class="screen-container">
-      <h1>🔄 Rotate Device</h1>
-      <p>Please turn the device to landscape to play.</p>
-    </div>
+  <!-- canvas layers -->
+  <canvas id="collisionCanvas"></canvas>
+  <canvas id="canvas1"></canvas>
 
-    <div id="wrongDeviceScreen" class="screen-container">
-      <h1>⚠️ Wrong Device</h1>
-      <p id="wrongDeviceMessage">You selected the wrong device type.</p>
-      <div class="control-row">
-        <button id="backToDeviceBtn" class="btn">Select Device</button>
-      </div>
-    </div>
+  <!-- HUD -->
+  <div id="hud" aria-hidden="true">
+    <div id="scoreDisplay" class="score">Score: 0</div>
+    <div id="statusDisplay" class="status"></div>
+  </div>
 
-    <div id="gameOverScreen" class="screen-container">
-      <h1>Game Over</h1>
-      <div id="finalScore" class="stat">Your Score: 0</div>
-      <div class="control-row">
-        <button id="playAgainButton" class="btn">Play Again</button>
-        <button id="deviceAgainButton" class="btn">Choose Device</button>
-      </div>
-    </div>
-
-    <!-- Canvas layers -->
-    <canvas id="collisionCanvas"></canvas>
-    <canvas id="canvas1"></canvas>
-
-    <div id="hud" aria-hidden="true">
-      <div id="scoreDisplay" class="score">Score: 0</div>
-      <div id="statusDisplay" class="status"></div>
-    </div>
-
-    <script src="script.js"></script>
-  </body>
+  <script src="script.js"></script>
+</body>
 </html>
