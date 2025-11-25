@@ -1,258 +1,154 @@
-body {
-  background: linear-gradient(
-    to top,
-    rgb(195, 234, 237),
-    rgb(93, 179, 255),
-    rgb(0, 102, 255)
-  );
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
+* {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
-  touch-action: none;
 }
-canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
+:root {
+  --bg1: #0f1724;
+  --bg2: #0b1220;
+  --accent: #6c5ce7;
+  --accent-2: #ff7675;
+  --ui-bg: rgba(255, 255, 255, 0.96);
+}
+html,
+body {
   height: 100%;
+  font-family: Inter, Segoe UI, system-ui, Arial, sans-serif;
+  background: linear-gradient(180deg, var(--bg1), var(--bg2));
+  color: #eef2ff;
+  overflow: hidden;
+}
+
+/* Canvas
+   Keep canvases full-bleed; JS sets backing store for crisp rendering */
+canvas {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 0;
 }
 #collisionCanvas {
   opacity: 0;
+  pointer-events: none;
 }
-#welcomeScreen {
+
+/* Generic screen container */
+.screen-container {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, rgb(0, 102, 255), rgb(93, 179, 255));
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  inset: 0;
+  display: none;
+  z-index: 2000;
   align-items: center;
-  z-index: 1000;
-  font-family: Impact, Arial, sans-serif;
+  justify-content: center;
+  flex-direction: column;
+  padding: 32px;
 }
-#welcomeScreen h1 {
-  color: white;
-  font-size: 48px;
+.screen-container.show {
+  display: flex;
+}
+.card {
+  background: var(--ui-bg);
+  color: #0b1220;
+  padding: 22px;
+  border-radius: 12px;
+  max-width: 760px;
+  box-shadow: 0 10px 30px rgba(2, 6, 23, 0.6);
+}
+
+h1 {
+  font-size: 40px;
+  margin-bottom: 18px;
   text-align: center;
-  margin: 20px;
-  text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
 }
-#nextButton,
-#startButton {
-  background: white;
-  color: rgb(0, 102, 255);
+.subtitle {
+  font-size: 18px;
+  margin-bottom: 24px;
+  text-align: center;
+  opacity: 0.9;
+}
+.btn {
+  background: #fff;
+  color: #0b1220;
   border: none;
-  padding: 20px 40px;
-  font-size: 24px;
-  font-weight: bold;
-  border-radius: 10px;
+  padding: 12px 26px;
+  border-radius: 999px;
+  font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  transition: transform 0.2s;
+  box-shadow: 0 8px 24px rgba(2, 6, 23, 0.45);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
-#nextButton:hover,
-#startButton:hover {
-  transform: scale(1.1);
+.btn:hover {
+  transform: translateY(-3px);
 }
-#nextButton:active,
-#startButton:active {
-  transform: scale(0.95);
+.btn.primary {
+  background: linear-gradient(90deg, var(--accent), #5f27cd);
+  color: #fff;
 }
-#deviceScreen,
-#instructionScreen {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, rgb(0, 102, 255), rgb(93, 179, 255));
+
+.device-buttons {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  font-family: Impact, Arial, sans-serif;
-}
-#deviceScreen h1,
-#instructionScreen h1 {
-  color: white;
-  font-size: 42px;
-  text-align: center;
-  margin-bottom: 40px;
-  text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+  gap: 20px;
 }
 .deviceButton {
-  background: white;
-  color: rgb(0, 102, 255);
-  border: none;
-  padding: 25px 60px;
-  font-size: 28px;
-  font-weight: bold;
-  border-radius: 15px;
-  cursor: pointer;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  transition: transform 0.2s;
-  min-width: 300px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  min-width: 220px;
+  justify-content: center;
+  padding: 18px 26px;
+  background: #fff;
+  color: var(--accent-2);
+  border-radius: 12px;
+  font-size: 18px;
 }
-.deviceButton:hover {
-  transform: scale(1.05);
-}
-.deviceButton:active {
-  transform: scale(0.95);
-}
-#instructionContent {
-  background: rgba(255, 255, 255, 0.9);
-  color: rgb(0, 102, 255);
-  padding: 30px;
-  border-radius: 15px;
-  margin-bottom: 30px;
-  max-width: 500px;
-  text-align: left;
-  font-size: 20px;
-  line-height: 1.6;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-#instructionContent p {
-  margin: 15px 0;
-}
-#instructionContent strong {
+.deviceButton .emoji {
   font-size: 22px;
 }
-#gameOverScreen {
-  display: none;
+
+/* HUD */
+#hud {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.85);
-  flex-direction: column;
-  justify-content: center;
+  left: 18px;
+  top: 18px;
+  z-index: 1500;
+  display: flex;
+  gap: 12px;
   align-items: center;
-  z-index: 3000;
-  font-family: Impact, Arial, sans-serif;
 }
-#gameOverScreen h1 {
-  color: white;
-  font-size: 52px;
-  text-align: center;
-  margin-bottom: 20px;
-  text-shadow: 3px 3px 6px rgba(255, 0, 0, 0.5);
-}
-#gameOverScreen p {
-  color: white;
-  font-size: 36px;
-  margin-bottom: 40px;
-}
-#playAgainButton {
-  background: white;
-  color: rgb(0, 102, 255);
-  border: none;
-  padding: 20px 50px;
-  font-size: 28px;
-  font-weight: bold;
+.score {
+  background: rgba(0, 0, 0, 0.45);
+  padding: 10px 14px;
   border-radius: 10px;
-  cursor: pointer;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  transition: transform 0.2s;
+  color: #fff;
+  font-weight: 700;
+  font-family: Impact, Arial Black, Helvetica;
 }
-#playAgainButton:hover {
-  transform: scale(1.1);
-}
-#playAgainButton:active {
-  transform: scale(0.95);
-}
-#wrongDeviceScreen {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(255, 50, 50, 0.95);
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  z-index: 3000;
-  font-family: Impact, Arial, sans-serif;
-}
-#wrongDeviceScreen h1 {
-  color: white;
-  font-size: 48px;
-  text-align: center;
-  margin-bottom: 20px;
-  text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
-}
-#wrongDeviceScreen p {
-  color: white;
-  font-size: 24px;
-  margin-bottom: 40px;
-  text-align: center;
-  max-width: 80%;
-}
-#selectDeviceAgainButton {
-  background: white;
-  color: rgb(255, 50, 50);
-  border: none;
-  padding: 20px 50px;
-  font-size: 28px;
-  font-weight: bold;
+.status {
+  background: rgba(255, 255, 255, 0.06);
+  padding: 8px 12px;
   border-radius: 10px;
-  cursor: pointer;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  transition: transform 0.2s;
+  font-size: 13px;
 }
-#selectDeviceAgainButton:hover {
-  transform: scale(1.1);
-}
-#selectDeviceAgainButton:active {
-  transform: scale(0.95);
-}
-#rotateScreen {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, rgb(255, 152, 0), rgb(255, 193, 7));
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  z-index: 2500;
-  font-family: Impact, Arial, sans-serif;
-}
-#rotateScreen h1 {
-  color: white;
-  font-size: 42px;
-  text-align: center;
-  margin-bottom: 30px;
-  text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
-}
-#rotateScreen p {
-  color: white;
+
+/* Game over card */
+.stat {
+  background: transparent;
+  color: #fff;
   font-size: 28px;
-  text-align: center;
+  margin-bottom: 16px;
 }
-#orientationWarning {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.9);
-  color: white;
-  font-family: Impact, Arial, sans-serif;
-  font-size: 24px;
-  text-align: center;
-  justify-content: center;
-  align-items: center;
-  z-index: 2000;
+.control-row {
+  display: flex;
+  gap: 16px;
+}
+
+/* Responsive tweaks */
+@media (max-width: 720px) {
+  h1 {
+    font-size: 28px;
+  }
+  .deviceButton {
+    min-width: 160px;
+    padding: 12px 14px;
+  }
 }
