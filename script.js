@@ -2,16 +2,34 @@ const welcomeScreen = document.getElementById("welcomeScreen");
 const deviceScreen = document.getElementById("deviceScreen");
 const instructionScreen = document.getElementById("instructionScreen");
 const gameOverScreen = document.getElementById("gameOverScreen");
+const wrongDeviceScreen = document.getElementById("wrongDeviceScreen");
+const rotateScreen = document.getElementById("rotateScreen");
 const nextButton = document.getElementById("nextButton");
 const startButton = document.getElementById("startButton");
 const playAgainButton = document.getElementById("playAgainButton");
+const selectDeviceAgainButton = document.getElementById(
+  "selectDeviceAgainButton"
+);
 const orientationWarning = document.getElementById("orientationWarning");
 const instructionContent = document.getElementById("instructionContent");
 const finalScore = document.getElementById("finalScore");
+const wrongDeviceMessage = document.getElementById("wrongDeviceMessage");
 
 let gameStarted = false;
+let gameInitialized = false;
 let selectedDevice = null;
 let shouldCheckOrientation = false;
+let hasRotatedOnce = false;
+
+// Detect if user is on mobile or desktop
+function isMobileDevice() {
+  return (
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    ) ||
+    (window.innerWidth <= 768 && "ontouchstart" in window)
+  );
+}
 
 // Next button - go to device selection
 nextButton.addEventListener("click", () => {
@@ -59,28 +77,107 @@ function checkOrientation() {
   const isLandscape = window.innerWidth > window.innerHeight;
 
   if (!isLandscape) {
-    orientationWarning.style.display = "flex";
-    if (window.gameLoopActive) {
-      window.gamePaused = true;
+    if (!hasRotatedOnce && !gameInitialized) {
+      // First time - show rotate screen instead of starting game
+      rotateScreen.style.display = "flex";
+    } else {
+      // Game is running - show orientation warning and pause
+      orientationWarning.style.display = "flex";
+      if (window.gameLoopActive) {
+        window.gamePaused = true;
+      }
     }
   } else {
+    // Landscape mode - hide all warnings
+    rotateScreen.style.display = "none";
     orientationWarning.style.display = "none";
-    if (window.gamePaused) {
+
+    if (!hasRotatedOnce) {
+      // First time rotating to landscape - initialize game
+      hasRotatedOnce = true;
+      if (!gameInitialized) {
+        initGame();
+        gameInitialized = true;
+      }
+    } else if (window.gamePaused) {
+      // Resume paused game
       window.gamePaused = false;
-      if (!gameOver) requestAnimationFrame(animate);
+      if (!gameOver) {
+        lastTime = performance.now();
+        requestAnimationFrame(animate);
+      }
     }
   }
+}
+
+// Check for wrong device
+function checkDeviceMatch() {
+  if (!gameStarted) return true;
+
+  const actuallyMobile = isMobileDevice();
+  const selectedMobile = selectedDevice === "mobile";
+
+  if (actuallyMobile !== selectedMobile) {
+    // Wrong device detected
+    if (actuallyMobile) {
+      wrongDeviceMessage.textContent =
+        "You selected PC but you're on a mobile device. Please select the correct device type.";
+    } else {
+      wrongDeviceMessage.textContent =
+        "You selected Mobile but you're on a PC/Desktop. Please select the correct device type.";
+    }
+    wrongDeviceScreen.style.display = "flex";
+    window.gamePaused = true;
+    return false;
+  }
+  return true;
 }
 
 startButton.addEventListener("click", () => {
   instructionScreen.style.display = "none";
   gameStarted = true;
 
-  if (shouldCheckOrientation) {
-    checkOrientation();
+  // Check if device matches selection
+  if (!checkDeviceMatch()) {
+    return;
   }
 
-  initGame();
+  if (shouldCheckOrientation) {
+    // For mobile, check orientation first
+    checkOrientation();
+  } else {
+    // For PC, start immediately
+    initGame();
+    gameInitialized = true;
+  }
+});
+
+selectDeviceAgainButton.addEventListener("click", () => {
+  // Reset everything
+  wrongDeviceScreen.style.display = "none";
+  gameStarted = false;
+  gameInitialized = false;
+  hasRotatedOnce = false;
+  selectedDevice = null;
+  shouldCheckOrientation = false;
+  window.gamePaused = false;
+
+  // Reset game state
+  score = 0;
+  gameOver = false;
+  ravens = [];
+  explosions = [];
+  timeToNextRaven = 0;
+  lastTime = 0;
+
+  // Clear canvas
+  if (canvas && ctx) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    collisionCtx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+
+  // Show device selection screen
+  deviceScreen.style.display = "flex";
 });
 
 playAgainButton.addEventListener("click", () => {
@@ -97,7 +194,8 @@ playAgainButton.addEventListener("click", () => {
   gameOverScreen.style.display = "none";
 
   // Restart game
-  animate(0);
+  lastTime = performance.now();
+  animate(lastTime);
 });
 
 window.addEventListener("resize", checkOrientation);
@@ -322,6 +420,10 @@ function animate(timestamp) {
 function initGame() {
   resizeCanvas();
   ctx.font = "50px Impact";
-  window.addEventListener("resize", resizeCanvas);
-  animate(0);
+  window.addEventListener("resize", () => {
+    resizeCanvas();
+    checkOrientation();
+  });
+  lastTime = performance.now();
+  animate(lastTime);
 }
