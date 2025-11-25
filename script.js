@@ -169,9 +169,9 @@ class Raven {
       (canvas.height / (window.devicePixelRatio || 1) - this.height);
 
     // speed scales with size (smaller = faster) and global scale
-    const speedBase = Math.random() * 3 + 2.5;
-    this.directionX =
-      (speedBase + Math.random() * 2) * (1 + (1 - this.sizeModifier)); // smaller move a bit faster
+    const speedBase = Math.random() * 1.2 + 1.0;
+    this.directionX = speedBase; 
+
     this.directionY = Math.random() * 2 - 1;
     this.markedForDeletion = false;
     this.image = new Image();
@@ -500,3 +500,4 @@ drawScore();
 window._game = { resetGameState, startGameplay, spawnRaven };
 
 /* End of file */
+
