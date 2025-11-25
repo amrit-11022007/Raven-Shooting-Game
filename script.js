@@ -1,27 +1,35 @@
-const welcomeScreen = document.getElementById("welcomeScreen");
-const deviceScreen = document.getElementById("deviceScreen");
-const instructionScreen = document.getElementById("instructionScreen");
-const gameOverScreen = document.getElementById("gameOverScreen");
-const wrongDeviceScreen = document.getElementById("wrongDeviceScreen");
-const rotateScreen = document.getElementById("rotateScreen");
+const screens = {
+  welcome: document.getElementById("welcomeScreen"),
+  device: document.getElementById("deviceScreen"),
+  instruction: document.getElementById("instructionScreen"),
+  rotate: document.getElementById("rotateScreen"),
+  wrongDevice: document.getElementById("wrongDeviceScreen"),
+  gameOver: document.getElementById("gameOverScreen"),
+};
 const nextButton = document.getElementById("nextButton");
 const startButton = document.getElementById("startButton");
-const playAgainButton = document.getElementById("playAgainButton");
-const selectDeviceAgainButton = document.getElementById(
-  "selectDeviceAgainButton"
-);
-const orientationWarning = document.getElementById("orientationWarning");
+const deviceButtons = Array.from(document.querySelectorAll(".deviceButton"));
 const instructionContent = document.getElementById("instructionContent");
-const finalScore = document.getElementById("finalScore");
 const wrongDeviceMessage = document.getElementById("wrongDeviceMessage");
+const backToDeviceBtn = document.getElementById("backToDeviceBtn");
+const playAgainButton = document.getElementById("playAgainButton");
+const deviceAgainButton = document.getElementById("deviceAgainButton");
+const finalScore = document.getElementById("finalScore");
+const scoreDisplay = document.getElementById("scoreDisplay");
+const statusDisplay = document.getElementById("statusDisplay");
 
-let gameStarted = false;
-let gameInitialized = false;
 let selectedDevice = null;
 let shouldCheckOrientation = false;
 let hasRotatedOnce = false;
+let gameStarted = false;
+let gameInitialized = false;
 
-// Detect if user is on mobile or desktop
+function showScreen(key) {
+  Object.values(screens).forEach((s) => s.classList.remove("show"));
+  if (screens[key]) screens[key].classList.add("show");
+}
+
+// Helpers
 function isMobileDevice() {
   return (
     /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
@@ -31,199 +39,95 @@ function isMobileDevice() {
   );
 }
 
-// Next button - go to device selection
-nextButton.addEventListener("click", () => {
-  welcomeScreen.style.display = "none";
-  deviceScreen.style.display = "flex";
-});
+// Navigation
+nextButton.addEventListener("click", () => showScreen("device"));
 
-// Device selection
-document.querySelectorAll(".deviceButton").forEach((button) => {
-  button.addEventListener("click", (e) => {
-    selectedDevice = e.target.dataset.device;
-    deviceScreen.style.display = "none";
+deviceButtons.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    selectedDevice = btn.dataset.device;
+    shouldCheckOrientation = selectedDevice === "mobile";
     showInstructions();
+    showScreen("instruction");
   });
 });
 
 function showInstructions() {
-  instructionScreen.style.display = "flex";
-
   if (selectedDevice === "mobile") {
     instructionContent.innerHTML = `
-                    <p><strong>📱 Mobile Instructions:</strong></p>
-                    <p>🔄 <strong>Rotate your device to landscape mode</strong> for the best experience.</p>
-                    <p>👆 <strong>Tap on the crows</strong> to shoot them down.</p>
-                    <p>⚡ Don't let any crow escape off the left side of the screen!</p>
-                    <p>🎯 Score points for every crow you hit.</p>
-                `;
-    shouldCheckOrientation = true;
+      <div class="card">
+        <p><strong>Mobile — landscape recommended</strong></p>
+        <ul>
+          <li>Rotate to landscape. Tap crows to shoot.</li>
+          <li>Don't let any crow escape off the left edge.</li>
+          <li>Quick rounds — your score appears at top-left.</li>
+        </ul>
+      </div>`;
   } else {
     instructionContent.innerHTML = `
-                    <p><strong>💻 PC Instructions:</strong></p>
-                    <p>🖱️ <strong>Click on the crows</strong> to shoot them down.</p>
-                    <p>⚡ Don't let any crow escape off the left side of the screen!</p>
-                    <p>🎯 Score points for every crow you hit.</p>
-                    <p>🎮 Good luck and have fun!</p>
-                `;
-    shouldCheckOrientation = false;
+      <div class="card">
+        <p><strong>PC / Laptop</strong></p>
+        <ul>
+          <li>Use the mouse to click crows.</li>
+          <li>Keyboard not required — just aim and click.</li>
+        </ul>
+      </div>`;
   }
 }
 
-// Check orientation (only for mobile)
-function checkOrientation() {
-  if (!shouldCheckOrientation || !gameStarted) return;
-
-  const isLandscape = window.innerWidth > window.innerHeight;
-
-  if (!isLandscape) {
-    if (!hasRotatedOnce && !gameInitialized) {
-      // First time - show rotate screen instead of starting game
-      rotateScreen.style.display = "flex";
-    } else {
-      // Game is running - show orientation warning and pause
-      orientationWarning.style.display = "flex";
-      if (window.gameLoopActive) {
-        window.gamePaused = true;
-      }
-    }
-  } else {
-    // Landscape mode - hide all warnings
-    rotateScreen.style.display = "none";
-    orientationWarning.style.display = "none";
-
-    if (!hasRotatedOnce) {
-      // First time rotating to landscape - initialize game
-      hasRotatedOnce = true;
-      if (!gameInitialized) {
-        initGame();
-        gameInitialized = true;
-      }
-    } else if (window.gamePaused) {
-      // Resume paused game
-      window.gamePaused = false;
-      if (!gameOver) {
-        lastTime = performance.now();
-        requestAnimationFrame(animate);
-      }
-    }
-  }
-}
-
-// Check for wrong device
-function checkDeviceMatch() {
-  if (!gameStarted) return true;
-
-  const actuallyMobile = isMobileDevice();
-  const selectedMobile = selectedDevice === "mobile";
-
-  if (actuallyMobile !== selectedMobile) {
-    // Wrong device detected
-    if (actuallyMobile) {
-      wrongDeviceMessage.textContent =
-        "You selected PC but you're on a mobile device. Please select the correct device type.";
-    } else {
-      wrongDeviceMessage.textContent =
-        "You selected Mobile but you're on a PC/Desktop. Please select the correct device type.";
-    }
-    wrongDeviceScreen.style.display = "flex";
-    window.gamePaused = true;
-    return false;
-  }
-  return true;
-}
-
-startButton.addEventListener("click", () => {
-  instructionScreen.style.display = "none";
-  gameStarted = true;
-
-  // Check if device matches selection
-  if (!checkDeviceMatch()) {
-    return;
-  }
-
-  if (shouldCheckOrientation) {
-    // For mobile, check orientation first
-    checkOrientation();
-  } else {
-    // For PC, start immediately
-    initGame();
-    gameInitialized = true;
-  }
+backToDeviceBtn.addEventListener("click", () => {
+  selectedDevice = null;
+  showScreen("device");
 });
 
-selectDeviceAgainButton.addEventListener("click", () => {
-  // Reset everything
-  wrongDeviceScreen.style.display = "none";
-  gameStarted = false;
-  gameInitialized = false;
-  hasRotatedOnce = false;
+deviceAgainButton.addEventListener("click", () => {
   selectedDevice = null;
-  shouldCheckOrientation = false;
-  window.gamePaused = false;
-
-  // Reset game state
-  score = 0;
-  gameOver = false;
-  ravens = [];
-  explosions = [];
-  timeToNextRaven = 0;
-  lastTime = 0;
-
-  // Clear canvas
-  if (canvas && ctx) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    collisionCtx.clearRect(0, 0, canvas.width, canvas.height);
-  }
-
-  // Show device selection screen
-  deviceScreen.style.display = "flex";
+  resetGameState();
+  showScreen("device");
 });
 
 playAgainButton.addEventListener("click", () => {
-  // Reset game state
-  score = 0;
-  gameOver = false;
-  ravens = [];
-  explosions = [];
-  timeToNextRaven = 0;
-  lastTime = 0;
-  window.gamePaused = false;
-
-  // Hide game over screen
-  gameOverScreen.style.display = "none";
-
-  // Restart game
-  lastTime = performance.now();
-  animate(lastTime);
+  resetGameState();
+  startGameplay();
+  showScreen(null); // hide overlays
 });
 
-window.addEventListener("resize", checkOrientation);
-window.addEventListener("orientationchange", checkOrientation);
-
-/** @type {HTMLCanvasElement} */
+// -------------------------------------------------------------
+// Canvas & Game logic (kept core logic but improved rendering)
 const canvas = document.getElementById("canvas1");
 const ctx = canvas.getContext("2d");
 const collisionCanvas = document.getElementById("collisionCanvas");
 const collisionCtx = collisionCanvas.getContext("2d");
 
-let score = 0;
-let gameOver = false;
-let timeToNextRaven = 0;
-let ravenInterval = 500;
-let lastTime = 0;
-let ravens = [];
-let explosions = [];
+let score = 0,
+  gameOver = false,
+  ravens = [],
+  explosions = [];
+let timeToNextRaven = 0,
+  ravenInterval = 500,
+  lastTime = 0;
 
-window.gameLoopActive = false;
-window.gamePaused = false;
-
+// HiDPI scaling
 function resizeCanvas() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  collisionCanvas.width = window.innerWidth;
-  collisionCanvas.height = window.innerHeight;
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  const ratio = window.devicePixelRatio || 1;
+  canvas.style.width = w + "px";
+  canvas.style.height = h + "px";
+  collisionCanvas.style.width = w + "px";
+  collisionCanvas.style.height = h + "px";
+  canvas.width = Math.floor(w * ratio);
+  canvas.height = Math.floor(h * ratio);
+  collisionCanvas.width = Math.floor(w * ratio);
+  collisionCanvas.height = Math.floor(h * ratio);
+  // reset transforms for proper scaling
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  collisionCtx.setTransform(ratio, 0, 0, ratio, 0, 0);
 }
+
+window.addEventListener("resize", () => {
+  resizeCanvas();
+  checkOrientation();
+});
 
 class Raven {
   constructor() {
@@ -232,10 +136,12 @@ class Raven {
     this.sizeModifier = Math.random() * 0.6 + 0.4;
     this.width = this.spriteWidth * this.sizeModifier;
     this.height = this.spriteHeight * this.sizeModifier;
-    this.x = canvas.width;
-    this.y = Math.random() * (canvas.height - this.height);
+    this.x = canvas.width / (window.devicePixelRatio || 1);
+    this.y =
+      Math.random() *
+      (canvas.height / (window.devicePixelRatio || 1) - this.height);
     this.directionX = Math.random() * 5 + 3;
-    this.directionY = Math.random() * 5 - 2.5;
+    this.directionY = Math.random() * 2 - 1;
     this.markedForDeletion = false;
     this.image = new Image();
     this.image.src = "raven.png";
@@ -248,33 +154,31 @@ class Raven {
       Math.floor(Math.random() * 255),
       Math.floor(Math.random() * 255),
     ];
-    this.color = `rgb(${this.randomColors[0]},${this.randomColors[1]},${this.randomColors[2]})`;
+    this.color = `rgb(${this.randomColors.join(",")})`;
   }
   update(deltaTime) {
-    if (this.y < 0 || this.y > canvas.height - this.height) {
-      this.directionY = this.directionY * -1;
-    }
+    if (
+      this.y < 0 ||
+      this.y > canvas.height / (window.devicePixelRatio || 1) - this.height
+    )
+      this.directionY *= -1;
     this.x -= this.directionX;
     this.y -= this.directionY;
-    if (this.x < 0 - this.width) {
-      this.markedForDeletion = true;
-    }
     this.timeSinceFlap += deltaTime;
     if (this.timeSinceFlap > this.flapInterval) {
-      if (this.frame > this.maxFrame) {
-        this.frame = 0;
-      } else {
-        this.frame++;
-      }
+      this.frame = (this.frame + 1) % (this.maxFrame + 1);
       this.timeSinceFlap = 0;
     }
-    if (this.x < 0 - this.width) {
+    if (this.x < -this.width) {
+      this.markedForDeletion = true;
       gameOver = true;
     }
   }
   draw() {
+    // collision layer
     collisionCtx.fillStyle = this.color;
     collisionCtx.fillRect(this.x, this.y, this.width, this.height);
+    // visible layer
     ctx.drawImage(
       this.image,
       this.frame * this.spriteWidth,
@@ -299,18 +203,16 @@ class Explosion {
     this.x = x;
     this.y = y;
     this.frame = 0;
-    this.timeSinceLastFrame = 0;
+    this.timeSince = 0;
     this.frameInterval = 200;
     this.markedForDeletion = false;
   }
-  update(deltatime) {
-    this.timeSinceLastFrame += deltatime;
-    if (this.timeSinceLastFrame > this.frameInterval) {
+  update(deltaTime) {
+    this.timeSince += deltaTime;
+    if (this.timeSince > this.frameInterval) {
       this.frame++;
-      this.timeSinceLastFrame = 0;
-      if (this.frame > 5) {
-        this.markedForDeletion = true;
-      }
+      this.timeSince = 0;
+      if (this.frame > 5) this.markedForDeletion = true;
     }
   }
   draw() {
@@ -329,101 +231,181 @@ class Explosion {
 }
 
 function drawScore() {
-  ctx.fillStyle = "black";
-  ctx.fillText("Score: " + score, 50, 75);
-  ctx.fillStyle = "white";
-  ctx.fillText("Score: " + score, 55, 80);
-}
-
-function drawGameOver() {
-  ctx.textAlign = "center";
-  ctx.fillStyle = "black";
-  ctx.fillText(
-    "GAME OVER, your score is " + score,
-    canvas.width / 2,
-    canvas.height / 2
-  );
-  ctx.fillStyle = "white";
-  ctx.fillText(
-    "GAME OVER, your score is " + score,
-    canvas.width / 2 + 5,
-    canvas.height / 2 + 5
-  );
-
-  // Show game over screen with play again button
-  finalScore.textContent = "Your Score: " + score;
-  gameOverScreen.style.display = "flex";
+  scoreDisplay.textContent = `Score: ${score}`;
 }
 
 function handleClick(x, y) {
-  const detectPixelColor = collisionCtx.getImageData(x, y, 1, 1);
-  const pc = detectPixelColor.data;
-  ravens.forEach((object) => {
+  // pixel color detection from collision canvas
+  const px = collisionCtx.getImageData(x, y, 1, 1).data;
+  ravens.forEach((r) => {
     if (
-      object.randomColors[0] === pc[0] &&
-      object.randomColors[1] === pc[1] &&
-      object.randomColors[2] === pc[2]
+      r.randomColors[0] === px[0] &&
+      r.randomColors[1] === px[1] &&
+      r.randomColors[2] === px[2]
     ) {
-      object.markedForDeletion = true;
+      r.markedForDeletion = true;
       score++;
-      const size = Math.max(object.width, object.height);
-      const ex = object.x + object.width / 2 - size / 2;
-      const ey = object.y + object.height / 2 - size / 2;
+      drawScore();
+      const size = Math.max(r.width, r.height);
+      const ex = r.x + r.width / 2 - size / 2;
+      const ey = r.y + r.height / 2 - size / 2;
       explosions.push(new Explosion(ex, ey, size));
     }
   });
 }
 
-// Mouse events
-canvas.addEventListener("click", (e) => {
-  const rect = canvas.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
-  handleClick(x, y);
+// Input
+canvas.addEventListener('click', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const ratio = window.devicePixelRatio || 1;
+
+    // convert CSS → actual canvas pixel coordinates
+    const x = (e.clientX - rect.left) * ratio;
+    const y = (e.clientY - rect.top) * ratio;
+
+    handleClick(x, y);
 });
 
-// Touch events for mobile
-canvas.addEventListener("touchstart", (e) => {
-  e.preventDefault();
-  const rect = canvas.getBoundingClientRect();
-  const touch = e.touches[0];
-  const x = touch.clientX - rect.left;
-  const y = touch.clientY - rect.top;
-  handleClick(x, y);
-});
+canvas.addEventListener(
+  "touchstart",
+  (e) => {
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const t = e.touches[0];
+    const ratio = window.devicePixelRatio || 1;
+
+    const x = (t.clientX - rect.left) * ratio;
+    const y = (t.clientY - rect.top) * ratio;
+
+    handleClick(x, y);
+  },
+  { passive: false }
+);
+
+let gameLoopActive = false;
 
 function animate(timestamp) {
+  if (gameLoopActive === false) return; // stopped
   if (window.gamePaused) return;
-
-  window.gameLoopActive = true;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  collisionCtx.clearRect(0, 0, canvas.width, canvas.height);
-  let deltaTime = timestamp - lastTime;
+  collisionCtx.clearRect(0, 0, collisionCanvas.width, collisionCanvas.height);
+  const deltaTime = timestamp - lastTime;
   lastTime = timestamp;
   timeToNextRaven += deltaTime;
   if (timeToNextRaven > ravenInterval) {
     ravens.push(new Raven());
     timeToNextRaven = 0;
-    ravens.sort((a, b) => {
-      return a.width - b.width;
-    });
+    ravens.sort((a, b) => a.width - b.width);
   }
-  drawScore();
-  [...ravens, ...explosions].forEach((object) => object.update(deltaTime));
-  [...ravens, ...explosions].forEach((object) => object.draw());
-  ravens = ravens.filter((object) => !object.markedForDeletion);
-  explosions = explosions.filter((object) => !object.markedForDeletion);
+  [...ravens, ...explosions].forEach((obj) => obj.update(deltaTime));
+  [...ravens, ...explosions].forEach((obj) => obj.draw());
+  ravens = ravens.filter((r) => !r.markedForDeletion);
+  explosions = explosions.filter((e) => !e.markedForDeletion);
   if (!gameOver) requestAnimationFrame(animate);
-  else drawGameOver();
+  else onGameOver();
+}
+
+function onGameOver() {
+  finalScore.textContent = `Your Score: ${score}`;
+  showScreen("gameOver");
+  gameLoopActive = false;
 }
 
 function initGame() {
   resizeCanvas();
-  ctx.font = "50px Impact";
-  window.addEventListener("resize", () => {
-    resizeCanvas();
-    checkOrientation();
-  });
+  ctx.font = "42px Impact, Arial Black, sans-serif";
   lastTime = performance.now();
-  animate(lastTime);
+  gameLoopActive = true;
+  requestAnimationFrame(animate);
 }
+
+function resetGameState() {
+  score = 0;
+  gameOver = false;
+  ravens = [];
+  explosions = [];
+  timeToNextRaven = 0;
+  lastTime = 0;
+  drawScore();
+}
+
+// Orientation & device validation
+function checkOrientation() {
+  if (!shouldCheckOrientation || !gameStarted) return true;
+  const isLandscape = window.innerWidth > window.innerHeight;
+  if (!isLandscape) {
+    if (!hasRotatedOnce && !gameInitialized) {
+      showScreen("rotate");
+    } else {
+      statusDisplay.textContent = "Rotate to continue";
+      showScreen(null);
+      /* keep HUD visible */ window.gamePaused = true;
+    }
+    return false;
+  }
+  // landscape ok
+  statusDisplay.textContent = "";
+  if (!hasRotatedOnce) {
+    hasRotatedOnce = true;
+    if (!gameInitialized) {
+      initGame();
+      gameInitialized = true;
+    }
+  }
+  if (window.gamePaused) {
+    window.gamePaused = false;
+    lastTime = performance.now();
+    requestAnimationFrame(animate);
+  }
+  return true;
+}
+
+function checkDeviceMatch() {
+  const actuallyMobile = isMobileDevice();
+  const selectedMobile = selectedDevice === "mobile";
+  if (actuallyMobile !== selectedMobile) {
+    wrongDeviceMessage.textContent = actuallyMobile
+      ? "You chose PC but are on mobile."
+      : "You chose Mobile but are on PC.";
+    showScreen("wrongDevice");
+    window.gamePaused = true;
+    return false;
+  }
+  return true;
+}
+
+// Start game flow
+startButton?.addEventListener("click", () => {
+  if (!selectedDevice) return showScreen("device");
+  showScreen(null);
+  gameStarted = true;
+  if (!checkDeviceMatch()) return;
+  if (shouldCheckOrientation) {
+    checkOrientation();
+  } else {
+    if (!gameInitialized) {
+      initGame();
+      gameInitialized = true;
+    }
+  }
+});
+
+// Public helper to start gameplay (used by play again)
+function startGameplay() {
+  resetGameState();
+  if (!gameInitialized) {
+    initGame();
+    gameInitialized = true;
+  } else {
+    gameLoopActive = true;
+    lastTime = performance.now();
+    requestAnimationFrame(animate);
+  }
+}
+
+// initialise UI
+resizeCanvas();
+drawScore();
+
+// expose small API for debugging in console if needed
+window._game = { resetGameState, startGameplay };
