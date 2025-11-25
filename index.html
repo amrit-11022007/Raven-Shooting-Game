@@ -1,50 +1,69 @@
-<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Crow Shooting Game</title>
+    <title>Crow Shooter — Refined</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div id="welcomeScreen">
-      <h1>Welcome to<br />Crow Shooter Game</h1>
-      <button id="nextButton">NEXT</button>
+    <!-- Screens (only one visible at a time) -->
+    <div id="welcomeScreen" class="screen-container show">
+      <h1>Welcome to<br />Crow Shooter</h1>
+      <p class="subtitle">Test your reflexes and aim — quick rounds, clean UI.</p>
+      <button id="nextButton" class="btn">Next</button>
     </div>
-    <div id="deviceScreen" style="display: none">
+
+    <div id="deviceScreen" class="screen-container">
       <h1>Choose Your Device</h1>
-      <div style="display: flex; flex-direction: column; gap: 20px">
-        <button class="deviceButton" data-device="mobile">📱 MOBILE</button>
-        <button class="deviceButton" data-device="pc">💻 PC / LAPTOP</button>
+      <div class="device-buttons">
+        <button class="deviceButton" data-device="mobile">
+          <span class="emoji">📱</span>
+          <span>MOBILE</span>
+        </button>
+        <button class="deviceButton" data-device="pc">
+          <span class="emoji">💻</span>
+          <span>PC / LAPTOP</span>
+        </button>
       </div>
     </div>
-    <div id="instructionScreen" style="display: none">
-      <h1 id="instructionTitle">Instructions</h1>
-      <div id="instructionContent"></div>
-      <button id="startButton">START GAME</button>
+
+    <div id="instructionScreen" class="screen-container">
+      <h1>How to Play</h1>
+      <div id="instructionContent" class="card"></div>
+      <button id="startButton" class="btn primary">Start Game</button>
     </div>
-    <div id="orientationWarning">
-      Please rotate your device to landscape mode
+
+    <div id="rotateScreen" class="screen-container">
+      <h1>🔄 Rotate Device</h1>
+      <p>Please turn the device to landscape to play.</p>
     </div>
-    <div id="gameOverScreen">
-      <h1>GAME OVER!</h1>
-      <p id="finalScore">Your Score: 0</p>
-      <button id="playAgainButton">PLAY AGAIN</button>
+
+    <div id="wrongDeviceScreen" class="screen-container">
+      <h1>⚠️ Wrong Device</h1>
+      <p id="wrongDeviceMessage">You selected the wrong device type.</p>
+      <div class="control-row">
+        <button id="backToDeviceBtn" class="btn">Select Device</button>
+      </div>
     </div>
-    <div id="wrongDeviceScreen">
-      <h1>⚠️ Wrong Device!</h1>
-      <p id="wrongDeviceMessage">
-        You selected a different device type. Please choose the correct device
-        to continue.
-      </p>
-      <button id="selectDeviceAgainButton">SELECT DEVICE AGAIN</button>
+
+    <div id="gameOverScreen" class="screen-container">
+      <h1>Game Over</h1>
+      <div id="finalScore" class="stat">Your Score: 0</div>
+      <div class="control-row">
+        <button id="playAgainButton" class="btn">Play Again</button>
+        <button id="deviceAgainButton" class="btn">Choose Device</button>
+      </div>
     </div>
-    <div id="rotateScreen">
-      <h1>🔄 Please Rotate Your Device</h1>
-      <p>Turn your device to landscape mode to start playing!</p>
-    </div>
+
+    <!-- Canvas layers -->
     <canvas id="collisionCanvas"></canvas>
     <canvas id="canvas1"></canvas>
+
+    <div id="hud" aria-hidden="true">
+      <div id="scoreDisplay" class="score">Score: 0</div>
+      <div id="statusDisplay" class="status"></div>
+    </div>
+
+    <script src="script.js"></script>
   </body>
-  <script src="script.js"></script>
 </html>
